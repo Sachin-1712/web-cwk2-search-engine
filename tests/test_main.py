@@ -106,3 +106,15 @@ def test_main_help(mocker, capsys):
     mocker.patch('sys.argv', ['main.py'])
     
     main()
+
+def test_main_print_word(mocker):
+    mocker.patch('sys.argv', ['main.py', 'print', 'test'])
+    mocker.patch('src.main.load_index', return_value={"total_docs": 5, "inverted_index": {"test": {"1": [0]}}})
+    
+    main()
+
+def test_main_print_word_not_found(mocker):
+    mocker.patch('sys.argv', ['main.py', 'print', 'test'])
+    mocker.patch('src.main.load_index', return_value={"total_docs": 5, "inverted_index": {}})
+    
+    main()

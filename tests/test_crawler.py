@@ -22,7 +22,7 @@ def test_fetch_page_retry_failure(requests_mock, mocker):
     assert mock_sleep.call_count == 1  # Called for the first failure before retry
 
 def test_crawl_quotes(requests_mock, mocker):
-    base_url = "http://quotes.toscrape.com"
+    base_url = "https://quotes.toscrape.com"
     
     html_page_1 = """
     <html>
@@ -65,7 +65,7 @@ def test_crawl_quotes(requests_mock, mocker):
     assert docs[1].url == f"{base_url}/page/2/"
 
 def test_crawl_duplicate_avoidance(requests_mock, mocker):
-    base_url = "http://quotes.toscrape.com"
+    base_url = "https://quotes.toscrape.com"
     
     html_page = """
     <html>

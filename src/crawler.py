@@ -33,7 +33,7 @@ def fetch_page(url: str, retries: int = 3) -> Optional[str]:
                 logger.error(f"Failed to fetch {url} after {retries} attempts.")
                 return None
 
-def crawl_quotes(base_url: str = 'http://quotes.toscrape.com', max_pages: Optional[int] = None, politeness_delay: float = 6.0) -> List[Document]:
+def crawl_quotes(base_url: str = 'https://quotes.toscrape.com', max_pages: Optional[int] = None, politeness_delay: float = 6.0) -> List[Document]:
     documents = []
     current_page = '/page/1/'
     doc_id_counter = 1

@@ -5,7 +5,7 @@ from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
-INDEX_FILE_PATH = "index.json"
+INDEX_FILE_PATH = os.path.join("data", "index.json")
 
 def save_index(data: Dict[str, Any], filepath: str = INDEX_FILE_PATH):
     """

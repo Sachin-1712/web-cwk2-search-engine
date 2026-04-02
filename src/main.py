@@ -19,7 +19,8 @@ def main():
     load_parser = subparsers.add_parser("load", help="Load the saved index from disk into memory")
     
     # print command
-    print_parser = subparsers.add_parser("print", help="Load the index and print structural statistics")
+    print_parser = subparsers.add_parser("print", help="Load the index and print structural statistics or info about a specific word")
+    print_parser.add_argument("word", nargs="?", default=None, help="The word to look up in the index")
     
     # find command
     find_parser = subparsers.add_parser("find", help="Execute a search query against the index")
@@ -55,9 +56,18 @@ def main():
         data = load_index()
         if not data:
             sys.exit(1)
-        print(f"Index Statistics:")
-        print(f"Total Documents: {data.get('total_docs', 0)}")
-        print(f"Total Terms in Vocabulary: {len(data.get('inverted_index', {}))}")
+        if args.word:
+            word = args.word.lower()
+            inverted = data.get('inverted_index', {})
+            if word in inverted:
+                print(f"Word '{word}' found in {len(inverted[word])} documents.")
+                print(f"Postings: {inverted[word]}")
+            else:
+                print(f"Word '{word}' not found in the index.")
+        else:
+            print(f"Index Statistics:")
+            print(f"Total Documents: {data.get('total_docs', 0)}")
+            print(f"Total Terms in Vocabulary: {len(data.get('inverted_index', {}))}")
         
     elif args.command == "find":
         query_string = " ".join(args.query)
