@@ -1,0 +1,114 @@
+import math
+import shlex
+from typing import List, Dict, Tuple, Set
+from src.indexer import Indexer, tokenize
+
+class SearchEngine:
+    def __init__(self, indexer: Indexer):
+        self.indexer = indexer
+        
+    def search(self, query_string: str) -> List[Tuple[float, dict]]:
+        """
+        Executes a search query. Supports exact phrase matching if quoted, 
+        otherwise multi-word intersection.
+        Returns a ranked list of (score, document).
+        """
+        if not query_string.strip():
+            return []
+            
+        # Check if it's an exact phrase query (starts and ends with double quotes)
+        # We can use shlex to safely split by quotes or simply check if quotes exist
+        is_phrase_query = query_string.startswith('"') and query_string.endswith('"')
+        
+        if is_phrase_query:
+            # Strip quotes
+            clean_query = query_string[1:-1]
+            tokens = tokenize(clean_query)
+            if not tokens:
+                return []
+            result_doc_ids = self._phrase_match(tokens)
+        else:
+            tokens = tokenize(query_string)
+            if not tokens:
+                return []
+            result_doc_ids = self._intersection_match(tokens)
+            
+        if not result_doc_ids:
+            return []
+            
+        # Rank the results using TF-IDF
+        ranked_results = []
+        total_docs = len(self.indexer.documents)
+        
+        for doc_id in result_doc_ids:
+            score = 0.0
+            doc_length = self.indexer.doc_lengths.get(doc_id, 1) # Prevent division by zero
+            
+            for token in tokens:
+                # Number of times token appears in this doc
+                tf_raw = len(self.indexer.inverted_index.get(token, {}).get(doc_id, []))
+                tf = tf_raw / doc_length
+                
+                # Document frequency: number of docs containing this token
+                df = len(self.indexer.inverted_index.get(token, {}))
+                idf = math.log((total_docs) / (df + 1)) + 1 # Smoothing
+                
+                score += tf * idf
+                
+            ranked_results.append((score, self.indexer.documents[doc_id]))
+            
+        # Sort descending by score
+        ranked_results.sort(key=lambda x: x[0], reverse=True)
+        return ranked_results
+
+    def _intersection_match(self, tokens: List[str]) -> Set[int]:
+        """
+        Returns document IDs that contain ALL the given tokens (AND logic).
+        """
+        result_docs = None
+        for token in tokens:
+            # Get set of docs containing this token
+            docs_with_token = set(self.indexer.inverted_index.get(token, {}).keys())
+            
+            if result_docs is None:
+                result_docs = docs_with_token
+            else:
+                result_docs = result_docs.intersection(docs_with_token)
+                
+            if not result_docs:
+                break # Early exit if intersection is empty
+                
+        return result_docs if result_docs is not None else set()
+
+    def _phrase_match(self, tokens: List[str]) -> Set[int]:
+        """
+        Returns document IDs that contain the exact phrase (tokens in exact sequence).
+        """
+        # First, ensure all tokens exist in the document
+        candidate_docs = self._intersection_match(tokens)
+        if not candidate_docs:
+            return set()
+            
+        if len(tokens) == 1:
+            return candidate_docs
+            
+        valid_docs = set()
+        
+        for doc_id in candidate_docs:
+            # Check positions for exact sequence
+            # positions_list is a list of position lists: [[pos_t1], [pos_t2], ...]
+            positions_list = [self.indexer.inverted_index[token][doc_id] for token in tokens]
+            
+            # Simple positional intersection algorithm
+            for pos in positions_list[0]:
+                is_match = True
+                for i in range(1, len(tokens)):
+                    # Check if pos + i is in the next token's position list
+                    if (pos + i) not in positions_list[i]:
+                        is_match = False
+                        break
+                if is_match:
+                    valid_docs.add(doc_id)
+                    break # One phrase match is enough to include the doc
+                    
+        return valid_docs
