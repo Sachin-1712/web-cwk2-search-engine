@@ -13,6 +13,8 @@ def save_index(data: Dict[str, Any], filepath: str = INDEX_FILE_PATH):
     """
     logger.info(f"Saving index to {filepath}...")
     try:
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         logger.info(f"Successfully saved index to {filepath}.")
