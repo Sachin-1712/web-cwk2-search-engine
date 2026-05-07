@@ -38,7 +38,7 @@ The system is composed of several modules:
 - **Robust Parsing**: Handles various HTML structures and skips duplicate content.
 - **Accurate Ranking**: Uses TF-IDF for relevant search results.
 - **Positional Indexing**: Enables efficient exact phrase matching.
-- **Comprehensive Testing**: 95%+ code coverage with mocked network calls.
+- **Comprehensive Testing**: 96% code coverage with mocked network calls.
 
 ## Architecture and Design Rationale
 
