@@ -4,7 +4,7 @@ from collections import defaultdict
 
 def tokenize(text: str) -> List[str]:
     """
-    Lowercases the text, removes punctuation, and splits on whitespace.
+    Normalize text into lowercase word tokens for consistent indexing/search.
     """
     text = text.lower()
     # Remove all non-alphanumeric characters except whitespace
@@ -13,6 +13,8 @@ def tokenize(text: str) -> List[str]:
     return tokens
 
 class Indexer:
+    """Builds and reloads the positional inverted index used by search."""
+
     def __init__(self):
         # term -> { doc_id: [pos1, pos2, ...] }
         self.inverted_index: Dict[str, Dict[int, List[int]]] = defaultdict(lambda: defaultdict(list))
@@ -23,14 +25,13 @@ class Indexer:
         
     def build_index(self, docs: List[dict]):
         """
-        Builds the inverted index from a list of document dictionaries.
+        Build postings lists where each term maps to document IDs and positions.
         """
         for doc in docs:
             doc_id = doc['doc_id']
             self.documents[doc_id] = doc
             
-            # Combine text, author, and tags for indexing
-            # Note: Positions will treat this as a single continuous text
+            # Treat quote text, author, and tags as one searchable document.
             content = f"{doc['text']} {doc['author']} {' '.join(doc['tags'])}"
             tokens = tokenize(content)
             
@@ -41,7 +42,7 @@ class Indexer:
 
     def get_index_data(self) -> dict:
         """
-        Returns a dictionary representation of the index components for persistence.
+        Return JSON-serializable index components for persistence.
         """
         # Convert defaultdicts to regular dicts for JSON serialization
         inverted_index_dict = {
@@ -58,7 +59,7 @@ class Indexer:
         
     def load_index_data(self, data: dict):
         """
-        Loads the index from a dictionary representation.
+        Restore persisted index data and convert JSON string keys back to ints.
         """
         self.inverted_index = defaultdict(lambda: defaultdict(list))
         for term, doc_postings in data.get("inverted_index", {}).items():

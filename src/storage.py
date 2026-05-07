@@ -9,11 +9,11 @@ INDEX_FILE_PATH = os.path.join("data", "index.json")
 
 def save_index(data: Dict[str, Any], filepath: str = INDEX_FILE_PATH):
     """
-    Persists the index data to a JSON file.
+    Persist the built index as readable UTF-8 JSON.
     """
     logger.info(f"Saving index to {filepath}...")
     try:
-        # Ensure directory exists
+        # Builds may run before the data directory exists.
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
@@ -23,7 +23,7 @@ def save_index(data: Dict[str, Any], filepath: str = INDEX_FILE_PATH):
 
 def load_index(filepath: str = INDEX_FILE_PATH) -> Dict[str, Any]:
     """
-    Loads the index data from a JSON file.
+    Load persisted index data, returning an empty dict if unavailable.
     """
     logger.info(f"Loading index from {filepath}...")
     if not os.path.exists(filepath):

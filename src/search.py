@@ -4,24 +4,25 @@ from typing import List, Dict, Tuple, Set
 from src.indexer import Indexer, tokenize
 
 class SearchEngine:
+    """Runs query matching and TF-IDF ranking over an Indexer instance."""
+
     def __init__(self, indexer: Indexer):
         self.indexer = indexer
         
     def search(self, query_string: str) -> List[Tuple[float, dict]]:
         """
-        Executes a search query. Supports exact phrase matching if quoted, 
-        otherwise multi-word intersection.
-        Returns a ranked list of (score, document).
+        Execute a query and return ranked ``(score, document)`` results.
+
+        Quoted input uses phrase matching; unquoted input uses AND-style
+        intersection so every query term must appear in each result.
         """
         if not query_string.strip():
             return []
             
-        # Check if it's an exact phrase query (starts and ends with double quotes)
-        # We can use shlex to safely split by quotes or simply check if quotes exist
+        # A phrase query is deliberately simple for the CLI: one quoted phrase.
         is_phrase_query = query_string.startswith('"') and query_string.endswith('"')
         
         if is_phrase_query:
-            # Strip quotes
             clean_query = query_string[1:-1]
             tokens = tokenize(clean_query)
             if not tokens:
@@ -36,7 +37,7 @@ class SearchEngine:
         if not result_doc_ids:
             return []
             
-        # Rank the results using TF-IDF
+        # Rank matching documents using normalized term frequency and smoothed IDF.
         ranked_results = []
         total_docs = len(self.indexer.documents)
         
@@ -63,7 +64,7 @@ class SearchEngine:
 
     def _intersection_match(self, tokens: List[str]) -> Set[int]:
         """
-        Returns document IDs that contain ALL the given tokens (AND logic).
+        Return document IDs that contain ALL the given tokens (AND logic).
         """
         result_docs = None
         for token in tokens:
@@ -82,7 +83,7 @@ class SearchEngine:
 
     def _phrase_match(self, tokens: List[str]) -> Set[int]:
         """
-        Returns document IDs that contain the exact phrase (tokens in exact sequence).
+        Return document IDs containing the exact token sequence.
         """
         # First, ensure all tokens exist in the document
         candidate_docs = self._intersection_match(tokens)
@@ -99,7 +100,7 @@ class SearchEngine:
             # positions_list is a list of position lists: [[pos_t1], [pos_t2], ...]
             positions_list = [self.indexer.inverted_index[token][doc_id] for token in tokens]
             
-            # Simple positional intersection algorithm
+            # Positional check: token i must appear at start position + i.
             for pos in positions_list[0]:
                 is_match = True
                 for i in range(1, len(tokens)):

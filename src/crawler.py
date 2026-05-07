@@ -10,6 +10,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Document:
+    """A single quote record captured from the target website."""
+
     doc_id: int
     text: str
     author: str
@@ -20,6 +22,8 @@ class Document:
         return asdict(self)
 
 def fetch_page(url: str, retries: int = 3) -> Optional[str]:
+    """Fetch one HTML page, retrying transient request failures before giving up."""
+
     for attempt in range(retries):
         try:
             response = requests.get(url, timeout=10)
@@ -34,6 +38,13 @@ def fetch_page(url: str, retries: int = 3) -> Optional[str]:
                 return None
 
 def crawl_quotes(base_url: str = 'https://quotes.toscrape.com', max_pages: Optional[int] = None, politeness_delay: float = 6.0) -> List[Document]:
+    """
+    Crawl paginated quote pages into Document objects.
+
+    The default delay is six seconds to satisfy the coursework politeness
+    requirement for real crawls. Tests and demos can pass a smaller delay.
+    """
+
     documents = []
     current_page = '/page/1/'
     doc_id_counter = 1
@@ -57,7 +68,7 @@ def crawl_quotes(base_url: str = 'https://quotes.toscrape.com', max_pages: Optio
         
         for quote_div in quotes:
             text = quote_div.find('span', class_='text').get_text(strip=True)
-            # Remove unicode quotes explicitly if present, though finding is fine
+            # Avoid indexing duplicate quote text if a page repeats content.
             if text in seen_texts:
                 continue
             seen_texts.add(text)
