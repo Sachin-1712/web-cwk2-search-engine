@@ -32,6 +32,16 @@ def test_phrase_match(mock_search_engine):
     # "be to" doesn't exist in that exact sequence
     results2 = mock_search_engine.search('"be to"')
     assert len(results2) == 0
+    
+def test_phrase_match_edge_cases(mock_search_engine):
+    # Single word phrase query should behave like a normal search
+    results = mock_search_engine.search('"thinking"')
+    assert len(results) == 1
+    assert results[0][1]["doc_id"] == 1
+    
+    # Phrase query where individual words exist but never in that sequence
+    results2 = mock_search_engine.search('"world thinking"')
+    assert len(results2) == 0
 
 def test_ranking_logic(mock_search_engine):
     # "our" is in doc 1 (two times) and doc 2 (two times)
