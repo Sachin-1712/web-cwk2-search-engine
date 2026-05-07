@@ -38,6 +38,7 @@ class SearchEngine:
             return []
             
         # Rank matching documents using normalized term frequency and smoothed IDF.
+        # This ensures shorter quotes with frequent terms are ranked higher.
         ranked_results = []
         total_docs = len(self.indexer.documents)
         
@@ -104,7 +105,7 @@ class SearchEngine:
             for pos in positions_list[0]:
                 is_match = True
                 for i in range(1, len(tokens)):
-                    # Check if pos + i is in the next token's position list
+                    # Check if the next token appears exactly one position after the current one
                     if (pos + i) not in positions_list[i]:
                         is_match = False
                         break

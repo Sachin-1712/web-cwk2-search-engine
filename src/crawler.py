@@ -63,6 +63,7 @@ def crawl_quotes(base_url: str = 'https://quotes.toscrape.com', max_pages: Optio
         if not html:
             break
             
+        # Parse the HTML and find all quote containers on the current page
         soup = BeautifulSoup(html, 'html.parser')
         quotes = soup.find_all('div', class_='quote')
         
@@ -90,6 +91,7 @@ def crawl_quotes(base_url: str = 'https://quotes.toscrape.com', max_pages: Optio
             
         next_btn = soup.find('li', class_='next')
         if next_btn:
+            # Extract the relative URL for the next page of quotes
             current_page = next_btn.find('a')['href']
             logger.info(f"Politeness delay: sleeping for {politeness_delay} seconds...")
             time.sleep(politeness_delay)

@@ -38,6 +38,7 @@ class Indexer:
             self.doc_lengths[doc_id] = len(tokens)
             
             for pos, token in enumerate(tokens):
+                # Track the position of each token to support exact phrase queries later.
                 self.inverted_index[token][doc_id].append(pos)
 
     def get_index_data(self) -> dict:

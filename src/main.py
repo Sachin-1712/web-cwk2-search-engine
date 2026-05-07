@@ -65,8 +65,9 @@ def main():
             if word in inverted:
                 postings = inverted[word]
                 num_docs = len(postings)
-                print(f"\n--- Postings for word: '{word}' ---")
-                print(f"Found in {num_docs} document(s):\n")
+                print(f"\n[Postings for word: '{word}']")
+                print(f"Total Occurrences: {sum(len(pos) for pos in postings.values())}")
+                print(f"Document Count:    {num_docs}\n")
                 
                 # Sorting by doc_id (they might be strings in the JSON)
                 sorted_doc_ids = sorted(postings.keys(), key=lambda x: int(x))
@@ -74,10 +75,8 @@ def main():
                 for d_id in sorted_doc_ids:
                     positions = postings[d_id]
                     freq = len(positions)
-                    print(f"  - Document ID: {d_id}")
-                    print(f"    Frequency:   {freq}")
-                    print(f"    Positions:   {', '.join(map(str, positions))}")
-                print("-" * (26 + len(word)))
+                    print(f"  • Doc ID {d_id:2} | [Freq: {freq}] | Positions: {', '.join(map(str, positions))}")
+                print("\n" + "=" * (20 + len(word)))
             else:
                 print(f"[INFO] Word '{word}' not found in the index.")
         else:
